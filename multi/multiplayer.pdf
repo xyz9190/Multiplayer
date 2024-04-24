@@ -1,0 +1,118 @@
+Name : Siddhi Mukund Phase
+Roll.No :526
+Practical Name: Multiplayer
+
+//Client2
+import java.io.*;
+import java.net.*;
+public class Client2 {
+private static final String SERVER_IP = "localhost";
+private static final int PORT = 5000;
+public static void main(String[] args) {
+try {
+Socket socket = new Socket(SERVER_IP, PORT);
+BufferedReader in = new BufferedReader(new
+InputStreamReader(socket.getInputStream()));
+PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+String serverMessage = in.readLine();
+System.out.println(serverMessage);
+BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+if (serverMessage.startsWith("You are Player 1")) {
+System.out.println("Enter a word for Player 2 to guess:");
+String word = userInput.readLine().trim().toLowerCase();
+out.println(word);
+}
+while (true) {
+String message = in.readLine();
+if (message == null) {
+break;
+}
+System.out.println(message);
+if (message.startsWith("Attempts left")) {
+String guess = userInput.readLine().trim().toLowerCase();
+out.println(guess);
+}
+}
+socket.close();
+} catch (IOException e) {
+e.printStackTrace();
+}
+}
+}
+//Server
+import java.io.*;
+import java.net.*;
+public class Server1 {
+private static final int PORT = 5000;
+private static final int MAX_ATTEMPTS = 5;
+public static void main(String[] args) {
+try {
+ServerSocket serverSocket = new ServerSocket(PORT);
+System.out.println("Server started. Waiting for players to connect...");
+Socket player1Socket = serverSocket.accept();
+System.out.println("Player 1 connected.");
+Socket player2Socket = serverSocket.accept();
+System.out.println("Player 2 connected.");
+BufferedReader player1In = new BufferedReader(new
+InputStreamReader(player1Socket.getInputStream()));
+PrintWriter player1Out = new PrintWriter(player1Socket.getOutputStream(), true);
+BufferedReader player2In = new BufferedReader(new
+InputStreamReader(player2Socket.getInputStream()));
+PrintWriter player2Out = new PrintWriter(player2Socket.getOutputStream(), true);
+player1Out.println("You are Player 1. Please think of a word for Player 2 to guess.");
+player2Out.println("You are Player 2. Wait for Player 1 to choose a word.");
+String wordToGuess = player1In.readLine().trim().toLowerCase();
+int attemptsLeft = MAX_ATTEMPTS;
+boolean wordGuessed = false;
+while (attemptsLeft > 0 && !wordGuessed) {
+player2Out.println("Attempts left: " + attemptsLeft + ". Guess the word:");
+String guess = player2In.readLine().trim().toLowerCase();
+if (guess.equals(wordToGuess)) {
+player2Out.println("Congratulations! You guessed the word.");
+wordGuessed = true;
+} else {
+player2Out.println("Incorrect guess. Try again.");
+attemptsLeft--;
+}
+}
+if (!wordGuessed) {
+player2Out.println("Out of attempts. The word was: " + wordToGuess);
+}
+player1Socket.close();
+player2Socket.close();
+serverSocket.close();
+} catch (IOException e) {
+e.printStackTrace();
+}
+}
+}
+OUTPUT:
+siddhi@siddhi-ThinkPad-T490s:~/Desktop/multi$ javac Server1.java
+siddhi@siddhi-ThinkPad-T490s:~/Desktop/multi$ java Server1
+Server started. Waiting for players to connect...
+Player 1 connected.
+Player 2 connected.
+siddhi@siddhi-ThinkPad-T490s:~/Desktop/multi$ 
+
+siddhi@siddhi-ThinkPad-T490s:~/Desktop/multi$ javac Client2.java
+siddhi@siddhi-ThinkPad-T490s:~/Desktop/multi$ java Client2
+You are Player 1. Please think of a word for Player 2 to guess.
+Enter a word for Player 2 to guess:
+siddhi
+siddhi@siddhi-ThinkPad-T490s:~/Desktop/multi$ 
+
+siddhi@siddhi-ThinkPad-T490s:~/Desktop/multi$ javac Client2.java
+siddhi@siddhi-ThinkPad-T490s:~/Desktop/multi$ java Client2
+You are Player 2. Wait for Player 1 to choose a word.
+Attempts left: 5. Guess the word:
+sid
+Incorrect guess. Try again.
+Attempts left: 4. Guess the word:
+sidd
+Incorrect guess. Try again.
+Attempts left: 3. Guess the word:
+siddhi
+Congratulations! You guessed the word.
+siddhi@siddhi-ThinkPad-T490s:~/Desktop/multi$ ^C
+
+
